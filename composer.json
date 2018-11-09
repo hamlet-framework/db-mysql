@@ -1,0 +1,35 @@
+{
+  "name": "hamlet/db-mysql",
+  "type": "framework",
+  "description": "Hamlet Framework / DB / MySQL",
+  "keywords": ["framework"],
+  "license": "Apache-2.0",
+  "authors": [
+    {
+      "name": "Vasily Kartashov",
+      "email": "info@kartashov.com"
+    }
+  ],
+  "require": {
+    "php": "^7.2",
+    "ext-mysqli": "@stable",
+    "psr/log": "@stable",
+    "hamlet-framework/db": "dev-master"
+  },
+  "require-dev": {
+    "phake/phake": "@stable",
+    "phpunit/phpunit": "^7",
+    "squizlabs/php_codesniffer": "@stable",
+    "monolog/monolog": "@stable"
+  },
+  "autoload": {
+    "psr-4": {
+      "Hamlet\\Database\\MySQL\\": "src"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Hamlet\\Database\\MySQL\\": "tests"
+    }
+  }
+}
