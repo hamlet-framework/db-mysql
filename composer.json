@@ -1,5 +1,5 @@
 {
-  "name": "hamlet/db-mysql",
+  "name": "hamlet-framework/db-mysql",
   "type": "framework",
   "description": "Hamlet Framework / DB / MySQL",
   "keywords": ["framework"],

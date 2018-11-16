@@ -1,6 +1,6 @@
 <?php
 
-namespace Hamlet\Database\SQLite3;
+namespace Hamlet\Database\MySQL;
 
 use Hamlet\Database\Database;
 use Hamlet\Database\MySQL\MySQLDatabase;
