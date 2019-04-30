@@ -9,21 +9,21 @@ use Hamlet\Database\Procedure;
 use mysqli;
 
 /**
- * @template-extends Database<T>
+ * @extends Database<mysqli>
  */
 class MySQLDatabase extends Database
 {
     public function __construct(string $host, string $user, string $password, string $databaseName = null)
     {
-        $connector = function () use ($host, $user, $password, $databaseName): mysqli {
-            if ($databaseName) {
-                return new mysqli($host, $user, $password, $databaseName);
-            } else {
-                return new mysqli($host, $user, $password);
+        parent::__construct(new ConnectionPool(
+            function () use ($host, $user, $password, $databaseName): mysqli {
+                if ($databaseName) {
+                    return new mysqli($host, $user, $password, $databaseName);
+                } else {
+                    return new mysqli($host, $user, $password);
+                }
             }
-        };
-        $pool = new ConnectionPool($connector);
-        return parent::__construct($pool);
+        ));
     }
 
     public function prepare(string $query): Procedure

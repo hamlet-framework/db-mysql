@@ -4,6 +4,7 @@
   "description": "Hamlet Framework / DB / MySQL",
   "keywords": ["framework"],
   "license": "Apache-2.0",
+  "minimum-stability": "dev",
   "authors": [
     {
       "name": "Vasily Kartashov",
@@ -11,7 +12,7 @@
     }
   ],
   "require": {
-    "php": "^7.2",
+    "php": "^7",
     "ext-mysqli": "@stable",
     "psr/log": "@stable",
     "hamlet-framework/db": "dev-master"
@@ -20,7 +21,9 @@
     "phake/phake": "@stable",
     "phpunit/phpunit": "^7",
     "squizlabs/php_codesniffer": "@stable",
-    "monolog/monolog": "@stable"
+    "monolog/monolog": "@stable",
+    "vimeo/psalm": "dev-master",
+    "phpstan/phpstan": "dev-master"
   },
   "autoload": {
     "psr-4": {

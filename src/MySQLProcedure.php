@@ -12,63 +12,101 @@ class MySQLProcedure extends Procedure
 {
     use QueryExpanderTrait;
 
-    /** @var callable */
+    /**
+     * @var callable
+     */
     private $executor;
 
-    /** @var string */
+    /**
+     * @var string
+     */
     private $query;
 
-    /** @var mixed */
+    /**
+     * @var mixed
+     */
     private $lastInsertId;
 
-    /** @var int|null */
+    /**
+     * @var int|null
+     */
     private $affectedRows;
 
     public function __construct(callable $executor, string $query)
     {
         $this->executor = $executor;
         $this->query = $query;
-    }
-
-    public function execute(): void
-    {
-        ($this->executor)(function (mysqli $connection) {
-            $this->executeInternal($connection);
-        });
-    }
-
-    public function insert(): int
-    {
-        return ($this->executor)(function (mysqli $connection) {
-            $this->executeInternal($connection);
-            return $this->lastInsertId;
-        });
+        $this->logger = null;
     }
 
     /**
-     * @return Generator<int,array<string,int|string|float|null>>
+     * @return void
+     */
+    public function execute()
+    {
+        $generator =
+            /**
+             * @param mysqli $connection
+             * @return void
+             */
+            function (mysqli $connection) {
+                $this->executeInternal($connection);
+            };
+
+        ($this->executor)($generator);
+    }
+
+    /**
+     * @return int
+     * @psalm-suppress MixedInferredReturnType
+     * @psalm-suppress MixedReturnStatement
+     */
+    public function insert(): int
+    {
+        $generator = function (mysqli $connection): int {
+            $this->executeInternal($connection);
+            assert(is_int($this->lastInsertId));
+            return $this->lastInsertId;
+        };
+
+        return ($this->executor)($generator);
+    }
+
+    /**
+     * @return Generator
+     * @psalm-return Generator<int,array<string,int|string|float|null>,mixed,void>
+     * @psalm-suppress MixedInferredReturnType
+     * @psalm-suppress MixedReturnStatement
      */
     public function fetch(): Generator
     {
-        return ($this->executor)(function (mysqli $connection) {
-            list($row, $statement) = $this->initFetching($connection);
-            $index = 0;
-            while (true) {
-                $status = $statement->fetch();
-                if ($status === true) {
-                    $rowCopy = [];
-                    foreach ($row as $key => $value) {
-                        $rowCopy[$key] = $value;
+        $generator =
+            /**
+             * @param mysqli $connection
+             * @return Generator
+             * @psalm-return Generator<int,array<string,int|float|string|null>,mixed,void>
+             */
+            function (mysqli $connection) {
+                list($row, $statement) = $this->initFetching($connection);
+                $index = 0;
+                while (true) {
+                    $status = $statement->fetch();
+                    if ($status === true) {
+                        $rowCopy = [];
+                        foreach ($row as $key => $value) {
+                            $rowCopy[$key] = $value;
+                        }
+                        yield $index++ => $rowCopy;
+                    } elseif ($status === null) {
+                        break;
+                    } else {
+                        throw MySQLDatabase::exception($connection);
                     }
-                    yield $index++ => $rowCopy;
-                } elseif ($status === null) {
-                    break;
-                } else {
-                    throw MySQLDatabase::exception($connection);
                 }
-            }
-            $this->finalizeFetching($connection, $statement);
-        });
+                $this->finalizeFetching($connection, $statement);
+            };
+
+        return ($this->executor)($generator);
     }
 
     public function affectedRows(): int
@@ -160,7 +198,8 @@ class MySQLProcedure extends Procedure
     /**
      * @param mysqli $connection
      * @param mysqli_stmt $statement
-     * @return array<string,int|float|string|null>
+     * @return array
+     * @psalm-return array<string,int|float|string|null>
      */
     private function bindResult(mysqli $connection, mysqli_stmt $statement): array
     {
