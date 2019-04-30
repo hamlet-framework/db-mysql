@@ -19,7 +19,7 @@
   },
   "require-dev": {
     "phake/phake": "@stable",
-    "phpunit/phpunit": "^7",
+    "phpunit/phpunit": "^6 || ^7",
     "squizlabs/php_codesniffer": "@stable",
     "monolog/monolog": "@stable",
     "vimeo/psalm": "dev-master",
