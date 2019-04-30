@@ -22,8 +22,8 @@
     "phpunit/phpunit": "^6 || ^7",
     "squizlabs/php_codesniffer": "@stable",
     "monolog/monolog": "@stable",
-    "vimeo/psalm": "dev-master",
-    "phpstan/phpstan": "dev-master"
+    "vimeo/psalm": "@stable",
+    "phpstan/phpstan": "@stable"
   },
   "autoload": {
     "psr-4": {
