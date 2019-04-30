@@ -13,6 +13,7 @@ services:
 
 before_script:
   - composer update
+  - sudo service mysql stop
   - cd $( pwd )/scripts && ./docker-run.sh
 
 script:
