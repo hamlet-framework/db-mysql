@@ -21,7 +21,7 @@ class MySQLDatabaseTest extends TestCase
 
     public function setUp()
     {
-        $this->database = new MySQLDatabase('0.0.0.0', 'root', '123456', 'test');
+        $this->database = new MySQLDatabase('0.0.0.0', 'root', '', 'test');
 
         $procedure = $this->database->prepare("INSERT INTO users (name) VALUES ('Vladimir')");
         $this->userId = $procedure->insert();
