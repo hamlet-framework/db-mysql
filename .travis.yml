@@ -18,5 +18,4 @@ before_script:
 script:
   - ./vendor/bin/phpcs --standard=PSR2 -n src
   - ./vendor/bin/psalm
-  - ./vendor/bin/phpstan analyse --level 7 src
   - ./vendor/bin/phpunit
