@@ -96,7 +96,7 @@ class MySQLDatabaseTest extends TestCase
 
         foreach ($iterator as $id => $user) {
             Assert::assertEquals($this->userId, $id);
-            Assert::assertCount(2, $user['addresses']);
+            Assert::assertEquals(['Moskva', 'Vladivostok'], $user['addresses']);
         }
     }
 
