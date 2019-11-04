@@ -2,10 +2,10 @@
 
 namespace Hamlet\Database\MySQL;
 
-use Hamlet\Database\ConnectionPool;
 use Hamlet\Database\Database;
 use Hamlet\Database\DatabaseException;
 use Hamlet\Database\Procedure;
+use Hamlet\Database\SimpleConnectionPool;
 use mysqli;
 
 /**
@@ -15,7 +15,7 @@ class MySQLDatabase extends Database
 {
     public function __construct(string $host, string $user, string $password, string $databaseName = null)
     {
-        parent::__construct(new ConnectionPool(
+        parent::__construct(new SimpleConnectionPool(
             function () use ($host, $user, $password, $databaseName): mysqli {
                 if ($databaseName) {
                     return new mysqli($host, $user, $password, $databaseName);

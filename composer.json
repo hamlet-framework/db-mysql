@@ -19,15 +19,15 @@
     "php": "^7",
     "ext-mysqli": "@stable",
     "psr/log": "@stable",
-    "hamlet-framework/db": "@stable"
+    "hamlet-framework/db": "dev-master"
   },
   "require-dev": {
+    "jakub-onderka/php-parallel-lint": "@stable",
+    "monolog/monolog": "@stable",
     "phake/phake": "@stable",
     "phpunit/phpunit": "^6 || ^7",
     "squizlabs/php_codesniffer": "@stable",
-    "monolog/monolog": "@stable",
-    "vimeo/psalm": "@stable",
-    "jakub-onderka/php-parallel-lint": "@stable"
+    "vimeo/psalm": "@stable"
   },
   "autoload": {
     "psr-4": {
