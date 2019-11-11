@@ -23,10 +23,14 @@ class MySQLProcedure extends Procedure
     private $query;
 
     /**
-     * @var mysqli_stmt[]
-     * @psalm-var array<string,mysqli_stmt>
+     * @var mixed
      */
-    private $cache = [];
+    private $lastInsertId;
+
+    /**
+     * @var mixed
+     */
+    private $affectedRows;
 
     public function __construct(mysqli $handle, string $query)
     {
@@ -50,7 +54,7 @@ class MySQLProcedure extends Procedure
     public function insert(): int
     {
         $this->executeInternal($this->handle);
-        return (int) $this->handle->insert_id;
+        return $this->lastInsertId;
     }
 
     /**
@@ -82,7 +86,7 @@ class MySQLProcedure extends Procedure
 
     public function affectedRows(): int
     {
-        return (int) ($this->handle->affected_rows ?? -1);
+        return (int) ($this->affectedRows ?? -1);
     }
 
     /**
@@ -96,6 +100,12 @@ class MySQLProcedure extends Procedure
         if ($executionSucceeded === false) {
             throw MySQLDatabase::exception($handle);
         }
+        $this->affectedRows = $statement->affected_rows;
+        $this->lastInsertId = $statement->insert_id;
+        $closeSucceeded = $statement->close();
+        if (!$closeSucceeded) {
+            throw MySQLDatabase::exception($handle);
+        }
     }
 
     /**
@@ -107,7 +117,7 @@ class MySQLProcedure extends Procedure
         list($query, $parameters) = $this->unwrapQueryAndParameters($this->query, $this->parameters);
         $this->parameters = [];
 
-        $statement = $this->cache[$query] = ($this->cache[$query] ?? $handle->prepare($query));
+        $statement = $handle->prepare($query);
         if ($statement === false) {
             throw MySQLDatabase::exception($handle);
         }
