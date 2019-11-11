@@ -5,6 +5,7 @@ namespace Hamlet\Database\MySQL;
 use Hamlet\Database\Database;
 use Hamlet\Database\DatabaseException;
 use Hamlet\Database\Procedure;
+use Hamlet\Database\Session;
 use Hamlet\Database\SimpleConnectionPool;
 use mysqli;
 
@@ -26,50 +27,11 @@ class MySQLDatabase extends Database
         ));
     }
 
-    public function prepare(string $query): Procedure
+    protected function createSession($handle): Session
     {
-        $procedure = new MySQLProcedure($this->executor(), $query);
-        $procedure->setLogger($this->logger);
-        return $procedure;
-    }
-
-    /**
-     * @param mysqli $connection
-     * @return void
-     */
-    protected function startTransaction($connection)
-    {
-        $this->logger->debug('Starting transaction');
-        $success = $connection->begin_transaction();
-        if (!$success) {
-            throw self::exception($connection);
-        }
-    }
-
-    /**
-     * @param mysqli $connection
-     * @return void
-     */
-    protected function commit($connection)
-    {
-        $this->logger->debug('Committing transaction');
-        $success = $connection->commit();
-        if (!$success) {
-            throw self::exception($connection);
-        }
-    }
-
-    /**
-     * @param mysqli $connection
-     * @return void
-     */
-    protected function rollback($connection)
-    {
-        $this->logger->debug('Rolling back transaction');
-        $success = $connection->rollback();
-        if (!$success) {
-            throw self::exception($connection);
-        }
+        $session = new MySQLSession($handle);
+        $session->setLogger($this->logger);
+        return $session;
     }
 
     public static function exception(mysqli $connection): DatabaseException

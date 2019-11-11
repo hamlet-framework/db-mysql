@@ -13,9 +13,9 @@ class MySQLProcedure extends Procedure
     use QueryExpanderTrait;
 
     /**
-     * @var callable
+     * @var mysqli
      */
-    private $executor;
+    private $handle;
 
     /**
      * @var string
@@ -32,11 +32,16 @@ class MySQLProcedure extends Procedure
      */
     private $affectedRows;
 
-    public function __construct(callable $executor, string $query)
+    /**
+     * @var mysqli_stmt[]
+     * @psalm-var array<string,mysqli_stmt>
+     */
+    private $cache = [];
+
+    public function __construct(mysqli $handle, string $query)
     {
-        $this->executor = $executor;
+        $this->handle = $handle;
         $this->query = $query;
-        $this->logger = null;
     }
 
     /**
@@ -44,16 +49,8 @@ class MySQLProcedure extends Procedure
      */
     public function execute()
     {
-        $generator =
-            /**
-             * @param mysqli $connection
-             * @return void
-             */
-            function (mysqli $connection) {
-                $this->executeInternal($connection);
-            };
 
-        ($this->executor)($generator);
+        $this->executeInternal($this->handle);
     }
 
     /**
@@ -63,13 +60,9 @@ class MySQLProcedure extends Procedure
      */
     public function insert(): int
     {
-        $generator = function (mysqli $connection): int {
-            $this->executeInternal($connection);
-            assert(is_int($this->lastInsertId));
-            return $this->lastInsertId;
-        };
-
-        return ($this->executor)($generator);
+        $this->executeInternal($this->handle);
+        assert(is_int($this->lastInsertId));
+        return $this->lastInsertId;
     }
 
     /**
@@ -80,33 +73,23 @@ class MySQLProcedure extends Procedure
      */
     public function fetch(): Generator
     {
-        $generator =
-            /**
-             * @param mysqli $connection
-             * @return Generator
-             * @psalm-return Generator<int,array<string,int|float|string|null>,mixed,void>
-             */
-            function (mysqli $connection) {
-                list($row, $statement) = $this->initFetching($connection);
-                $index = 0;
-                while (true) {
-                    $status = $statement->fetch();
-                    if ($status === true) {
-                        $rowCopy = [];
-                        foreach ($row as $key => $value) {
-                            $rowCopy[$key] = $value;
-                        }
-                        yield $index++ => $rowCopy;
-                    } elseif ($status === null) {
-                        break;
-                    } else {
-                        throw MySQLDatabase::exception($connection);
-                    }
+        list($row, $statement) = $this->initFetching($this->handle);
+        $index = 0;
+        while (true) {
+            $status = $statement->fetch();
+            if ($status === true) {
+                $rowCopy = [];
+                foreach ($row as $key => $value) {
+                    $rowCopy[$key] = $value;
                 }
-                $this->finalizeFetching($connection, $statement);
-            };
-
-        return ($this->executor)($generator);
+                yield $index++ => $rowCopy;
+            } elseif ($status === null) {
+                break;
+            } else {
+                throw MySQLDatabase::exception($this->handle);
+            }
+        }
+        $this->finalizeFetching($this->handle, $statement);
     }
 
     public function affectedRows(): int
@@ -115,36 +98,36 @@ class MySQLProcedure extends Procedure
     }
 
     /**
-     * @param mysqli $connection
+     * @param mysqli $handle
      * @return void
      */
-    private function executeInternal(mysqli $connection)
+    private function executeInternal(mysqli $handle)
     {
-        $statement = $this->bindParameters($connection);
+        $statement = $this->bindParameters($handle);
         $executionSucceeded = $statement->execute();
         if ($executionSucceeded === false) {
-            throw MySQLDatabase::exception($connection);
+            throw MySQLDatabase::exception($handle);
         }
         $closeSucceeded = $statement->close();
         if (!$closeSucceeded) {
-            throw MySQLDatabase::exception($connection);
+            throw MySQLDatabase::exception($handle);
         }
-        $this->lastInsertId = $connection->insert_id;
-        $this->affectedRows = (int) $connection->affected_rows;
+        $this->lastInsertId = $handle->insert_id;
+        $this->affectedRows = (int) $handle->affected_rows;
     }
 
     /**
-     * @param mysqli $connection
+     * @param mysqli $handle
      * @return mysqli_stmt
      */
-    private function bindParameters(mysqli $connection): mysqli_stmt
+    private function bindParameters(mysqli $handle): mysqli_stmt
     {
         list($query, $parameters) = $this->unwrapQueryAndParameters($this->query, $this->parameters);
         $this->parameters = [];
 
-        $statement = $connection->prepare($query);
+        $statement = $this->cache[$query] = ($this->cache[$query] ?? $handle->prepare($query));
         if ($statement === false) {
-            throw MySQLDatabase::exception($connection);
+            throw MySQLDatabase::exception($handle);
         }
         if (count($parameters) == 0) {
             return $statement;
@@ -158,54 +141,54 @@ class MySQLProcedure extends Procedure
         }
         $success = $statement->bind_param($signature, ...$values);
         if (!$success) {
-            throw MySQLDatabase::exception($connection);
+            throw MySQLDatabase::exception($handle);
         }
 
         return $statement;
     }
 
     /**
-     * @param mysqli $connection
+     * @param mysqli $handle
      * @return array
      * @psalm-return array{0:array<string,int|float|string|null>,1:mysqli_stmt}
      */
-    private function initFetching(mysqli $connection): array
+    private function initFetching(mysqli $handle): array
     {
-        $statement = $this->bindParameters($connection);
-        $row = $this->bindResult($connection, $statement);
+        $statement = $this->bindParameters($handle);
+        $row = $this->bindResult($handle, $statement);
         $success = $statement->execute();
         if (!$success) {
-            throw MySQLDatabase::exception($connection);
+            throw MySQLDatabase::exception($handle);
         }
         $statement->store_result();
         return [$row, $statement];
     }
 
     /**
-     * @param mysqli $connection
+     * @param mysqli $handle
      * @param mysqli_stmt $statement
      * @return void
      */
-    private function finalizeFetching(mysqli $connection, mysqli_stmt $statement)
+    private function finalizeFetching(mysqli $handle, mysqli_stmt $statement)
     {
         $statement->free_result();
         $success = $statement->close();
         if (!$success) {
-            throw MySQLDatabase::exception($connection);
+            throw MySQLDatabase::exception($handle);
         }
     }
 
     /**
-     * @param mysqli $connection
+     * @param mysqli $handle
      * @param mysqli_stmt $statement
      * @return array
      * @psalm-return array<string,int|float|string|null>
      */
-    private function bindResult(mysqli $connection, mysqli_stmt $statement): array
+    private function bindResult(mysqli $handle, mysqli_stmt $statement): array
     {
         $metaData = $statement->result_metadata();
         if ($metaData === false) {
-            throw MySQLDatabase::exception($connection);
+            throw MySQLDatabase::exception($handle);
         }
         $row = [];
         $boundParameters = [];
@@ -216,7 +199,7 @@ class MySQLProcedure extends Procedure
         }
         $success = $statement->bind_result(...$boundParameters);
         if (!$success) {
-            throw MySQLDatabase::exception($connection);
+            throw MySQLDatabase::exception($handle);
         }
         return $row;
     }

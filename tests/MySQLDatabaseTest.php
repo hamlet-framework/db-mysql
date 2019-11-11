@@ -5,6 +5,7 @@ namespace Hamlet\Database\MySQL;
 use Hamlet\Database\Database;
 use Hamlet\Database\MySQL\MySQLDatabase;
 use Hamlet\Database\Procedure;
+use Hamlet\Database\Session;
 use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\TestCase;
 
@@ -23,31 +24,35 @@ class MySQLDatabaseTest extends TestCase
     {
         $this->database = new MySQLDatabase('0.0.0.0', 'root', '', 'test');
 
-        $procedure = $this->database->prepare("INSERT INTO users (name) VALUES ('Vladimir')");
-        $this->userId = $procedure->insert();
+        $this->database->withSession(function (Session $session) {
+            $procedure = $session->prepare("INSERT INTO users (name) VALUES ('Vladimir')");
+            $this->userId = $procedure->insert();
 
-        $procedure = $this->database->prepare("INSERT INTO addresses (user_id, address) VALUES (?, 'Moskva')");
-        $procedure->bindInteger($this->userId);
-        $procedure->execute();
+            $procedure = $session->prepare("INSERT INTO addresses (user_id, address) VALUES (?, 'Moskva')");
+            $procedure->bindInteger($this->userId);
+            $procedure->execute();
 
-        $procedure = $this->database->prepare("INSERT INTO addresses (user_id, address) VALUES (?, 'Vladivostok')");
-        $procedure->bindInteger($this->userId);
-        $procedure->execute();
+            $procedure = $session->prepare("INSERT INTO addresses (user_id, address) VALUES (?, 'Vladivostok')");
+            $procedure->bindInteger($this->userId);
+            $procedure->execute();
 
-        $this->procedure = $this->database->prepare('
-            SELECT users.id,
-                   name,
-                   address
-              FROM users 
-                   JOIN addresses
-                     ON users.id = addresses.user_id      
-        ');
+            $this->procedure = $session->prepare('
+                SELECT users.id,
+                       name,
+                       address
+                  FROM users 
+                       JOIN addresses
+                         ON users.id = addresses.user_id      
+            ');
+        });
     }
 
     public function tearDown()
     {
-        $this->database->prepare('DELETE FROM addresses WHERE 1')->execute();
-        $this->database->prepare('DELETE FROM users WHERE 1')->execute();
+        $this->database->withSession(function (Session $session) {
+            $session->prepare('DELETE FROM addresses WHERE 1')->execute();
+            $session->prepare('DELETE FROM users WHERE 1')->execute();
+        });
     }
 
     public function testProcessOne()
@@ -102,7 +107,10 @@ class MySQLDatabaseTest extends TestCase
 
     public function testInsert()
     {
-        $procedure = $this->database->prepare("INSERT INTO users (name) VALUES ('Anatoly')");
-        Assert::assertGreaterThan($this->userId, $procedure->insert());
+        $this->database->withSession(function (Session $session) {
+            $procedure = $session->prepare("INSERT INTO users (name) VALUES ('Anatoly')");
+            Assert::assertGreaterThan($this->userId, $procedure->insert());
+        });
+
     }
 }
