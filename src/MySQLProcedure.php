@@ -23,16 +23,6 @@ class MySQLProcedure extends Procedure
     private $query;
 
     /**
-     * @var mixed
-     */
-    private $lastInsertId;
-
-    /**
-     * @var int|null
-     */
-    private $affectedRows;
-
-    /**
      * @var mysqli_stmt[]
      * @psalm-var array<string,mysqli_stmt>
      */
@@ -49,7 +39,6 @@ class MySQLProcedure extends Procedure
      */
     public function execute()
     {
-
         $this->executeInternal($this->handle);
     }
 
@@ -61,8 +50,7 @@ class MySQLProcedure extends Procedure
     public function insert(): int
     {
         $this->executeInternal($this->handle);
-        assert(is_int($this->lastInsertId));
-        return $this->lastInsertId;
+        return (int) $this->handle->insert_id;
     }
 
     /**
@@ -94,7 +82,7 @@ class MySQLProcedure extends Procedure
 
     public function affectedRows(): int
     {
-        return $this->affectedRows ?? -1;
+        return (int) ($this->handle->affected_rows ?? -1);
     }
 
     /**
@@ -108,12 +96,6 @@ class MySQLProcedure extends Procedure
         if ($executionSucceeded === false) {
             throw MySQLDatabase::exception($handle);
         }
-        $closeSucceeded = $statement->close();
-        if (!$closeSucceeded) {
-            throw MySQLDatabase::exception($handle);
-        }
-        $this->lastInsertId = $handle->insert_id;
-        $this->affectedRows = (int) $handle->affected_rows;
     }
 
     /**

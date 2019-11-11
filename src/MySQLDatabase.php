@@ -27,6 +27,11 @@ class MySQLDatabase extends Database
         ));
     }
 
+    /**
+     * @param mysqli $handle
+     * @return Session
+     * @psalm-suppress LessSpecificImplementedReturnType
+     */
     protected function createSession($handle): Session
     {
         $session = new MySQLSession($handle);

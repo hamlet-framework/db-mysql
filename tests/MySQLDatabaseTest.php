@@ -3,7 +3,6 @@
 namespace Hamlet\Database\MySQL;
 
 use Hamlet\Database\Database;
-use Hamlet\Database\MySQL\MySQLDatabase;
 use Hamlet\Database\Procedure;
 use Hamlet\Database\Session;
 use PHPUnit\Framework\Assert;
@@ -111,6 +110,18 @@ class MySQLDatabaseTest extends TestCase
             $procedure = $session->prepare("INSERT INTO users (name) VALUES ('Anatoly')");
             Assert::assertGreaterThan($this->userId, $procedure->insert());
         });
+    }
 
+    public function testUpdate()
+    {
+        $this->database->withSession(function (Session $session) {
+            $procedure = $session->prepare("UPDATE users SET name = 'Vasily' WHERE name = 'Vladimir'");
+            $procedure->execute();
+            Assert::assertEquals(1, $procedure->affectedRows());
+
+            $procedure = $session->prepare("UPDATE users SET name = 'Nikolay' WHERE name = 'Evgeniy'");
+            $procedure->execute();
+            Assert::assertEquals(0, $procedure->affectedRows());
+        });
     }
 }
