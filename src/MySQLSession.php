@@ -7,7 +7,7 @@ use Hamlet\Database\Session;
 use mysqli;
 
 /**
- * @extends Session<mysql>
+ * @extends Session<mysqli>
  */
 class MySQLSession extends Session
 {
