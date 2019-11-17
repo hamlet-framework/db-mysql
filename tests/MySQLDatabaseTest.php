@@ -112,6 +112,21 @@ class MySQLDatabaseTest extends TestCase
         });
     }
 
+    public function testPrepareMultiple()
+    {
+        $generators = [];
+        for ($i = 1; $i <= 3; $i++) {
+            $generators[] = function (Session $session) use ($i) {
+                return $session->prepare('SELECT ?')->bindInteger($i);
+            };
+        }
+        $result = $this->database->prepareMultiple($generators)->forEach(function (Procedure $procedure) {
+            return $procedure->processOne()->coalesceAll()->collectHead();
+        });
+
+        Assert::assertEquals([1, 2, 3], $result);
+    }
+
     public function testUpdate()
     {
         $this->database->withSession(function (Session $session) {

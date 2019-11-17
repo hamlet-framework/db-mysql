@@ -4,9 +4,11 @@ namespace Hamlet\Database\MySQL;
 
 use Hamlet\Database\Database;
 use Hamlet\Database\DatabaseException;
+use Hamlet\Database\MultiProcedureContext;
 use Hamlet\Database\Procedure;
 use Hamlet\Database\Session;
 use Hamlet\Database\SimpleConnectionPool;
+use Hamlet\Database\SimpleMultiProcedureContext;
 use mysqli;
 
 /**
@@ -38,6 +40,17 @@ class MySQLDatabase extends Database
         $session->setLogger($this->logger);
         return $session;
     }
+
+    /**
+     * @param array $generators
+     * @psalm-param array<callable(Session):Procedure> $generators
+     * @return MultiProcedureContext
+     */
+    public function prepareMultiple(array $generators)
+    {
+        return new MySQLMultiProcedureContext($this->pool, $generators);
+    }
+
 
     public static function exception(mysqli $connection): DatabaseException
     {
