@@ -25,12 +25,12 @@ class MySQLAsyncProcedure extends Procedure
     private $resultSet = null;
 
     /**
-     * @var int|null
+     * @var mixed
      */
     private $lastInsertId = null;
 
     /**
-     * @var int|null
+     * @var mixed
      */
     private $affectedRows = null;
 
@@ -40,6 +40,9 @@ class MySQLAsyncProcedure extends Procedure
         $this->query = $query;
     }
 
+    /**
+     * @return void
+     */
     public function sendAsyncQuery()
     {
         $this->handle->query($this->interpolateQuery(), MYSQLI_ASYNC);
@@ -64,6 +67,7 @@ class MySQLAsyncProcedure extends Procedure
     /**
      * @return Generator
      * @psalm-return Generator<int,array<string,int|string|float|null>,mixed,void>
+     * @psalm-suppress MixedReturnTypeCoercion
      */
     protected function fetch(): Generator
     {
@@ -72,7 +76,7 @@ class MySQLAsyncProcedure extends Procedure
 
     public function insert(): int
     {
-        return $this->lastInsertId ?? -1;
+        return $this->lastInsertId ? (int) $this->lastInsertId : -1;
     }
 
     /**
@@ -84,7 +88,7 @@ class MySQLAsyncProcedure extends Procedure
 
     public function affectedRows(): int
     {
-        return $this->affectedRows ?? 0;
+        return $this->affectedRows ? (int) $this->affectedRows : 0;
     }
 
     /**
@@ -105,7 +109,7 @@ class MySQLAsyncProcedure extends Procedure
                         $replacement = (float) $value;
                         break;
                     case 's':
-                        $replacement = $this->handle->real_escape_string($value);
+                        $replacement = $this->handle->real_escape_string((string) $value);
                         break;
                 }
             }
