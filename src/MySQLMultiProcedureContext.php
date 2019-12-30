@@ -23,7 +23,7 @@ class MySQLMultiProcedureContext implements MultiProcedureContext
      * @param ConnectionPool $pool
      * @psalm-param ConnectionPool<\mysqli> $pool
      * @param callable[] $generators
-     * @psalm-var array<callable(\Hamlet\Database\Session):\Hamlet\Database\Procedure> $generators
+     * @psalm-param array<callable(\Hamlet\Database\Session):\Hamlet\Database\Procedure> $generators
      */
     public function __construct(ConnectionPool $pool, array $generators)
     {
