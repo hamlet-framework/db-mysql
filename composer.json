@@ -10,6 +10,7 @@
       "email": "info@kartashov.com"
     }
   ],
+  "minimum-stability": "dev",
   "config": {
     "optimize-autoloader": true,
     "classmap-authoritative": true,
