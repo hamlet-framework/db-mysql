@@ -54,6 +54,6 @@ class MySQLDatabase extends Database
 
     public static function exception(mysqli $connection): DatabaseException
     {
-        return new DatabaseException((string) ($connection->error ?? 'Unknown error'), (int) ($connection->errno ?? -1));
+        return new DatabaseException($connection->error, $connection->errno);
     }
 }
