@@ -12,6 +12,7 @@ services:
   - mysql
 
 before_script:
+  - composer self-update --rollback
   - composer update
   - mysql < ./scripts/schema.sql
 
