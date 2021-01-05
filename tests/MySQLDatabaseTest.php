@@ -10,16 +10,25 @@ use PHPUnit\Framework\TestCase;
 
 class MySQLDatabaseTest extends TestCase
 {
-    /** @var Database */
+    /**
+     * @var Database
+     */
     private $database;
 
-    /** @var Procedure */
+    /**
+     * @var Procedure
+     */
     private $procedure;
 
-    /** @var int */
+    /**
+     * @var int
+     */
     private $userId;
 
-    public function setUp()
+    /**
+     * @before
+     */
+    public function setUp_()
     {
         $this->database = new MySQLDatabase('0.0.0.0', 'root', '', 'test');
 
@@ -46,7 +55,10 @@ class MySQLDatabaseTest extends TestCase
         });
     }
 
-    public function tearDown()
+    /**
+     * @after
+     */
+    public function tearDown_()
     {
         $this->database->withSession(function (Session $session) {
             $session->prepare('DELETE FROM addresses WHERE 1')->execute();
