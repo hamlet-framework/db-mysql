@@ -58,8 +58,7 @@ class MySQLProcedure extends Procedure
     }
 
     /**
-     * @return Generator
-     * @psalm-return Generator<int,array<string,int|string|float|null>,mixed,void>
+     * @return Generator<int,array<string,int|string|float|null>,mixed,void>
      * @psalm-suppress MixedInferredReturnType
      * @psalm-suppress MixedReturnStatement
      */

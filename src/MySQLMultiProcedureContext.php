@@ -4,26 +4,23 @@ namespace Hamlet\Database\MySQL;
 
 use Hamlet\Database\ConnectionPool;
 use Hamlet\Database\MultiProcedureContext;
+use mysqli;
 
 class MySQLMultiProcedureContext implements MultiProcedureContext
 {
     /**
-     * @var ConnectionPool
-     * @psalm-var ConnectionPool<\mysqli>
+     * @var ConnectionPool<mysqli>
      */
     private $pool;
 
     /**
-     * @var callable[]
-     * @psalm-var array<callable(\Hamlet\Database\Session):\Hamlet\Database\Procedure>
+     * @var array<callable(\Hamlet\Database\Session):\Hamlet\Database\Procedure>
      */
     private $generators;
 
     /**
-     * @param ConnectionPool $pool
-     * @psalm-param ConnectionPool<\mysqli> $pool
-     * @param callable[] $generators
-     * @psalm-param array<callable(\Hamlet\Database\Session):\Hamlet\Database\Procedure> $generators
+     * @param ConnectionPool<mysqli> $pool
+     * @param array<callable(\Hamlet\Database\Session):\Hamlet\Database\Procedure> $generators
      */
     public function __construct(ConnectionPool $pool, array $generators)
     {
@@ -33,13 +30,11 @@ class MySQLMultiProcedureContext implements MultiProcedureContext
 
     /**
      * @template T
-     * @param callable $processor
-     * @psalm-param callable(\Hamlet\Database\Procedure):T $processor
-     * @return array
-     * @psalm-return array<T>
+     * @param callable(\Hamlet\Database\Procedure):T $processor
+     * @return array<T>
      * @psalm-suppress MissingClosureReturnType
      */
-    public function forEach(callable $processor)
+    public function forEach(callable $processor): array
     {
         $generators = [];
         $result = [];
@@ -62,7 +57,7 @@ class MySQLMultiProcedureContext implements MultiProcedureContext
                 $handles[$key] = $handle;
                 $procedures[$key] = $procedure;
 
-                $keys[(int) $handle->thread_id] = $key;
+                $keys[$handle->thread_id] = $key;
             }
             $links = $errors = $reject = [];
             foreach ($handles as $handle) {
@@ -72,7 +67,7 @@ class MySQLMultiProcedureContext implements MultiProcedureContext
                 continue;
             }
             foreach ($links as $handle) {
-                $key = $keys[(int) $handle->thread_id];
+                $key = $keys[$handle->thread_id];
                 $procedure = $procedures[$key];
                 if ($procedure->reapAsyncQuery()) {
                     $result[$key] = $processor($procedure);

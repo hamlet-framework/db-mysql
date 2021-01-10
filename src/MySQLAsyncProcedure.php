@@ -120,7 +120,7 @@ class MySQLAsyncProcedure extends Procedure
             if ($position === false) {
                 throw new RuntimeException('Invalid number of arguments');
             }
-            $query = substr_replace($query, $replacement, $position, 1);
+            $query = substr_replace($query, (string) $replacement, $position, 1);
         }
         return $query;
     }

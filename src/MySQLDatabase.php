@@ -42,8 +42,7 @@ class MySQLDatabase extends Database
     }
 
     /**
-     * @param array $generators
-     * @psalm-param array<callable(Session):Procedure> $generators
+     * @param array<callable(Session):Procedure> $generators
      * @return MultiProcedureContext
      */
     public function prepareMultiple(array $generators)
