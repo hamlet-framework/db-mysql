@@ -18,6 +18,6 @@ before_script:
 
 script:
   - ./vendor/bin/parallel-lint src
-  - ./vendor/bin/phpunit --testdox
-  - ./vendor/bin/psalm
   - ./vendor/bin/phpcs --standard=PSR2 -n src
+  - php -v | grep -q 'PHP 7.' || ./vendor/bin/phpunit --testdox
+  - php -v | grep -q 'PHP 7.' || ./vendor/bin/psalm
