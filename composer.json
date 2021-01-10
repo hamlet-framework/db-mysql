@@ -23,7 +23,7 @@
     "hamlet-framework/db": "dev-master"
   },
   "require-dev": {
-    "jakub-onderka/php-parallel-lint": "@stable",
+    "php-parallel-lint/php-parallel-lint": "@stable",
     "monolog/monolog": "@stable",
     "phake/phake": "@stable",
     "phpunit/phpunit": "^6 || ^7 || ^8",
