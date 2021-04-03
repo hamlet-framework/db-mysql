@@ -12,5 +12,6 @@
         </ignoreFiles>
     </projectFiles>
     <issueHandlers>
+        <UnusedVariable errorLevel="suppress"/>
     </issueHandlers>
 </psalm>
