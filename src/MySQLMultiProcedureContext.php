@@ -32,7 +32,6 @@ class MySQLMultiProcedureContext implements MultiProcedureContext
      * @template T
      * @param callable(\Hamlet\Database\Procedure):T $processor
      * @return array<T>
-     * @psalm-suppress MissingClosureReturnType
      */
     public function forEach(callable $processor): array
     {

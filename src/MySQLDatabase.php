@@ -53,7 +53,6 @@ class MySQLDatabase extends Database
 
     public static function exception(mysqli $connection): DatabaseException
     {
-        /** @psalm-suppress MixedArgument */
         return new DatabaseException($connection->error, $connection->errno);
     }
 }

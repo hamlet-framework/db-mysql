@@ -59,8 +59,6 @@ class MySQLProcedure extends Procedure
 
     /**
      * @return Generator<int,array<string,int|string|float|null>,mixed,void>
-     * @psalm-suppress MixedInferredReturnType
-     * @psalm-suppress MixedReturnStatement
      */
     public function fetch(): Generator
     {
